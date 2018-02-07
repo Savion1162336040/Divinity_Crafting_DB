@@ -12,7 +12,7 @@ import java.util.List;
  */
 @Table(value = "divinity.material")
 public class Material extends Items implements Synthetic {
-    @Column(value = "items")
+    @Column(value = "item")
     List<Synthetic> items;
 
     public Synthetic Synthesis(Object o) {

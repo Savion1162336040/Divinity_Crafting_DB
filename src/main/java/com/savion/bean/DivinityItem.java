@@ -1,17 +1,18 @@
 package com.savion.bean;
 
-import org.nutz.dao.entity.annotation.Column;
-import org.nutz.dao.entity.annotation.Name;
+import com.savion.main.Divinity2Parse;
+
+import java.io.Serializable;
+import java.util.List;
 
 /**
- * Created by savion on 2018/2/6.
+ * Created by savion on 2018/2/7.
  */
-public abstract class Items {
-    @Column(value = "name")
-    @Name
-    public String name;
-    @Column(value = "description")
-    public String description;
+public class DivinityItem implements Serializable {
+
+    private String name;
+    private String description;
+    private List<DivinityItem> items;
 
     public String getName() {
         return name;
@@ -29,11 +30,20 @@ public abstract class Items {
         this.description = description;
     }
 
+    public List<DivinityItem> getItems() {
+        return items;
+    }
+
+    public void setItems(List<DivinityItem> items) {
+        this.items = items;
+    }
+
     @Override
     public String toString() {
-        return "Items{" +
+        return "DivinityItem{" +
                 "name='" + name + '\'' +
                 ", description='" + description + '\'' +
+                ", items=" + items +
                 '}';
     }
 }

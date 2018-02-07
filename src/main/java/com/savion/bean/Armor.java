@@ -12,8 +12,9 @@ import java.util.List;
  */
 @Table(value = "divinity.armor")
 public class Armor extends Items implements Synthetic {
-    @Column(value = "items")
+    @Column(value = "item")
     List<Synthetic> items;
+
     public Synthetic Synthesis(Object o) {
         return null;
     }
@@ -24,5 +25,17 @@ public class Armor extends Items implements Synthetic {
 
     public void setItems(List<Synthetic> items) {
         this.items = items;
+    }
+
+    @Override
+    public String toString() {
+        String itemstring = "[";
+        for (int i = 0; items != null && i < items.size(); i++) {
+            itemstring += "item" + i + ":(" + items.get(i).toString() + "),";
+        }
+        itemstring += "]";
+        return "Armor{" + itemstring
+                + super.toString() +
+                "} ";
     }
 }
