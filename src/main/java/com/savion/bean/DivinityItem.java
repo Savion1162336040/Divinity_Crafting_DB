@@ -1,5 +1,6 @@
 package com.savion.bean;
 
+import com.savion.behavior.Synthetic;
 import com.savion.main.Divinity2Parse;
 
 import java.io.Serializable;
@@ -8,7 +9,7 @@ import java.util.List;
 /**
  * Created by savion on 2018/2/7.
  */
-public class DivinityItem implements Serializable {
+public class DivinityItem implements Serializable,Synthetic{
 
     private String name;
     private String description;
@@ -45,5 +46,10 @@ public class DivinityItem implements Serializable {
                 ", description='" + description + '\'' +
                 ", items=" + items +
                 '}';
+    }
+
+    @Override
+    public Synthetic Synthesis(Object o) {
+        return null;
     }
 }

@@ -20,7 +20,7 @@ public class DBConnection {
 
     private void getSource(){
         simpleDataSource = new SimpleDataSource();
-        simpleDataSource.setJdbcUrl("jdbc:mysql://localhost:3306/divinity");
+        simpleDataSource.setJdbcUrl("jdbc:mysql://localhost:3306/divinity?serverTimezone=UTC");
         simpleDataSource.setUsername("savion");
         simpleDataSource.setPassword("sw820820");
     }

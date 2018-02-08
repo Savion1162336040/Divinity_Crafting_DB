@@ -7,6 +7,6 @@ import java.util.List;
  */
 public interface OnParseCallback<E> {
     void success(List<E> es);
-    void error();
+    void error(String msg);
     void empty();
 }

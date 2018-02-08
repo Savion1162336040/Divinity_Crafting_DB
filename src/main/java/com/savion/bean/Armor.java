@@ -1,9 +1,12 @@
 package com.savion.bean;
 
 import com.savion.behavior.Synthetic;
+import com.savion.db.ArmorDao;
 import org.nutz.dao.entity.annotation.Column;
 import org.nutz.dao.entity.annotation.Table;
+import org.nutz.json.Json;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -12,11 +15,23 @@ import java.util.List;
  */
 @Table(value = "divinity.armor")
 public class Armor extends Items implements Synthetic {
-    @Column(value = "item")
     List<Synthetic> items;
+    Json json;
+    @Column(value = "item")
+    String jsonStr;
 
-    public Synthetic Synthesis(Object o) {
-        return null;
+    public Armor(){}
+    public Armor(String name,String des){
+        this.name = name;
+        this.description = des;
+    }
+
+    public Json getJson() {
+        return json;
+    }
+
+    public void setJson(Json json) {
+        this.json = json;
     }
 
     public List<Synthetic> getItems() {
@@ -25,6 +40,9 @@ public class Armor extends Items implements Synthetic {
 
     public void setItems(List<Synthetic> items) {
         this.items = items;
+        String json = Json.toJson(items);
+        jsonStr = json;
+        System.out.println(json);
     }
 
     @Override
@@ -37,5 +55,22 @@ public class Armor extends Items implements Synthetic {
         return "Armor{" + itemstring
                 + super.toString() +
                 "} ";
+    }
+
+    public static void main(String[] strings){
+        Armor armor = new Armor("present","present des");
+        List<Synthetic> armors = new ArrayList<>();
+        armors.add(new Armor("a","a d"));
+        armors.add(new Armor("b","b d"));
+        armor.setItems(armors);
+
+        ArmorDao dao = new ArmorDao();
+        boolean b = dao.insert(armor);
+        System.out.println(b);
+    }
+
+    @Override
+    public Synthetic Synthesis(Object o) {
+        return null;
     }
 }

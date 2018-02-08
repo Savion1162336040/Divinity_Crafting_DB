@@ -1,5 +1,7 @@
 package com.savion.main;
 
+import com.savion.behavior.Analysis;
+
 import java.util.Map;
 
 /**
@@ -27,4 +29,10 @@ public interface JSoupImp<E> {
      * @return
      */
     JSoupImp<E> callback(OnParseCallback<E> callback);
+
+    /**
+     * 传递实体解析器
+     * @return
+     */
+    JSoupImp<E> callDocumentAnalysis(Analysis analysis);
 }

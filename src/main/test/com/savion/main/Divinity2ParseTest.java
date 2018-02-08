@@ -13,24 +13,6 @@ import static org.junit.Assert.*;
 public class Divinity2ParseTest {
     @Test
     public void parse() throws Exception {
-        JSoupImp parse = new Divinity2Parse();
-        parse.callback(new OnParseCallback<DivinityItem>() {
-            @Override
-            public void success(List<DivinityItem> divinityItems) {
-                divinityItems.forEach(System.out::println);
-            }
-
-            @Override
-            public void error() {
-                System.out.println("divinity parse error");
-            }
-
-            @Override
-            public void empty() {
-                System.out.println("divinity parse empty");
-            }
-        });
-        parse.parse();
     }
 
     @Test

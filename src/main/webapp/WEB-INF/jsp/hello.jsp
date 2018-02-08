@@ -1,4 +1,11 @@
-<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+<%--
+  Created by IntelliJ IDEA.
+  User: savion
+  Date: 2018/2/8
+  Time: 17:28
+  To change this template use File | Settings | File Templates.
+--%>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <!doctype html>
 <html lang="en">
 <head>
@@ -9,6 +16,6 @@
     <title>Document</title>
 </head>
 <body>
-    <h1>Welcom to Divinity Origin Sin2 Crafting Site</h1>
+<h1><%request.getAttribute("obj");%></h1>
 </body>
 </html>

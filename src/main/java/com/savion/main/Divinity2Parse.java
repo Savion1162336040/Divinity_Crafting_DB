@@ -1,32 +1,35 @@
 package com.savion.main;
 
-import com.savion.bean.DivinityItem;
+import com.savion.bean.Armor;
+import com.savion.bean.Items;
+import com.savion.behavior.Analysis;
+import com.savion.behavior.Synthetic;
+import com.savion.db.ArmorDao;
+import com.savion.exception.DataEmptyException;
+import com.savion.exception.DataParseException;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
 
 import java.io.IOException;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Created by savion on 2018/2/7.
  */
-public class Divinity2Parse implements JSoupImp<DivinityItem> {
+public class Divinity2Parse<T extends Items, E extends Synthetic> implements JSoupImp<E> {
     //解析地址
     public static String DIVINITY_URL = "http://www.irodemine.com/divinity2/divinity2.php";
     //参数搜索类别
-    public static String PARAM_SEARCH_CATEGORY = "selection";
+    public static final String PARAM_SEARCH_CATEGORY = "selection";
     //参数搜索关键字
-    public static String PARAM_SEARCH_TEXT = "searchMe";
+    public static final String PARAM_SEARCH_TEXT = "searchMe";
+
+    private Map<String, String> params = null;//new HashMap<>();
 
     private String cURL = DIVINITY_URL;
 
-    private OnParseCallback<DivinityItem> mcallback = null;
+    private OnParseCallback<T> mcallback = null;
+    private Analysis<T> mAnalysis;
     /**
      * 搜索分类
      * 0:全部
@@ -47,55 +50,62 @@ public class Divinity2Parse implements JSoupImp<DivinityItem> {
      */
     private String searchMe = "";
 
-    private void get(String category, String text) {
-        System.out.println("start to get:url = ["+cURL+"] , searchSection = ["+searchSection+"] , searchMe = ["+searchMe+"]");
+    private void addParams() {
+        if (this.params != null) {
+            Map<String, String> tempMap = params;
+            int index = this.cURL.indexOf("?");
+            String newUrl;
+            if (index > 0) {
+                String par = this.cURL.substring(index + 1);
+                String[] pars = par.split("&");
+                newUrl = cURL.substring(0, index + 1);
+                for (int i = 0; i < pars.length; i++) {
+                    String[] en = pars[i].split("=");
+                    if (en != null && en.length > 0) {
+                        String[] news = new String[2];
+                        if (tempMap.containsKey(en[0])) {
+                            news[0] = en[0];
+                            news[1] = tempMap.get(en[0]);
+                            newUrl += en[0] + "=" + tempMap.get(en[0]) + "&";
+                            tempMap.remove(en[0]);
+                        }
+                    } else {
+                        newUrl += pars[i] + "&";
+                    }
+                }
+                for (String key : tempMap.keySet()) {
+                    newUrl += key + "=" + tempMap.get(key) + "&";
+                }
+            } else {
+                newUrl = cURL + "?";
+                for (String key : tempMap.keySet()) {
+                    newUrl += key + "=" + tempMap.get(key) + "&";
+                }
+            }
+            cURL = newUrl;
+        }
+        System.out.println(cURL);
+    }
+
+    private void get() {
         Thread thread = new Thread() {
             @Override
             public void run() {
                 super.run();
                 try {
-                    Document document = Jsoup.connect(cURL).data(PARAM_SEARCH_CATEGORY, category).data(PARAM_SEARCH_TEXT, text).timeout(10000).post();
-                    Elements table = document.getElementsByClass("divinitytable");
-                    if (table.size() == 0) {
-                        if (mcallback != null)
-                            mcallback.empty();
+                    addParams();
+                    System.out.println("start to get:url = [" + cURL + "] , searchSection = [" + searchSection + "] , searchMe = [" + searchMe + "]");
+                    Document document = Jsoup.connect(cURL).timeout(10000).post();
+                    if (document == null) {
+                        if (mcallback != null) {
+                            mcallback.error("Unreceived target's data");
+                        }
                         return;
                     }
-                    Element tablenode = table.get(0);
-                    Element body = tablenode.getElementsByTag("tbody").get(0);
-                    Elements trs = body.getElementsByTag("tr");
-                    List<DivinityItem> items = new ArrayList<DivinityItem>();
-                    DivinityItem item;
-                    for (int i = 1; trs != null && i < trs.size(); i++) {
-                        item = new DivinityItem();
-                        Elements tds = trs.get(i).getElementsByTag("td");
-                        if (tds.size()<3){
-                            continue;
-                        }
-                        //物品名称
-                        if (tds.get(0).childNodeSize()==1){
-                            item.setName(tds.get(0).text());
-                        }else{
-                            item.setName(tds.get(0).getElementsByTag("a").text());
-                        }
-                        //多个组合材料
-                        Elements ps = tds.get(1).children();
-                        List<DivinityItem> mixItems = new ArrayList<>();
-                        DivinityItem mixItem;
-                        for (int j = 0; ps != null && j < ps.size(); j++) {
-                            mixItem = new DivinityItem();
-                            String psas = ps.get(j).text();
-                            mixItem.setName(psas);
-                            mixItems.add(mixItem);
-                        }
-                        item.setItems(mixItems);
-                        //描述
-                        item.setDescription(tds.get(2).text());
-                        items.add(item);
-                    }
-                    if (items != null) {
+                    List result = mAnalysis.analysis(document);
+                    if (result != null) {
                         if (mcallback != null) {
-                            mcallback.success(items);
+                            mcallback.success(result);
                         }
                     } else {
                         if (mcallback != null) {
@@ -103,10 +113,20 @@ public class Divinity2Parse implements JSoupImp<DivinityItem> {
                         }
                     }
                 } catch (IOException e) {
-                    e.printStackTrace();
                     if (mcallback != null) {
-                        mcallback.error();
+                        mcallback.error("IOException:"+e.getMessage());
                     }
+                } catch (DataEmptyException e) {
+                    if (mcallback != null) {
+                        mcallback.empty();
+                    }
+                } catch (DataParseException e) {
+                    if (mcallback != null) {
+                        mcallback.error("DataParseException:"+e.getMessage());
+                    }
+                } catch (Exception e) {
+                    if (mcallback != null)
+                        mcallback.error("Exception:"+e.getMessage());
                 }
             }
         };
@@ -119,37 +139,48 @@ public class Divinity2Parse implements JSoupImp<DivinityItem> {
     @Override
     public void parse() {
         //获取全部数据
-        get(this.searchSection, this.searchMe);
+        get();
     }
 
     /**
      * 获取地址设置
+     *
      * @param url
      * @return
      */
     @Override
     public JSoupImp url(String url) {
         this.cURL = url != null && url.length() > 0 ? url : DIVINITY_URL;
-        parse();
         return this;
     }
 
     /**
      * 参数设置
+     *
      * @param selection 参数列表,接收参数如下:
+     * @return
      * @see #searchSection
      * @see #searchMe
-     * @return
      */
     @Override
-    public JSoupImp params(Map<String,String> selection) {
-        this.searchSection = selection.getOrDefault("searchSection","0");
-        this.searchMe = selection.getOrDefault("searchMe","");
+    public JSoupImp params(Map<String, String> selection) {
+        this.searchSection = selection.getOrDefault(PARAM_SEARCH_CATEGORY, "0");
+        this.searchMe = selection.getOrDefault(PARAM_SEARCH_TEXT, "");
+        this.params = new HashMap<String, String>();
+        this.params.put(PARAM_SEARCH_CATEGORY, this.searchSection);
+        this.params.put(PARAM_SEARCH_TEXT, this.searchMe);
+        return this;
+    }
+
+    @Override
+    public JSoupImp<E> callDocumentAnalysis(Analysis analysis) {
+        this.mAnalysis = analysis;
         return this;
     }
 
     /**
      * 回调设置
+     *
      * @param callback
      * @return
      */
@@ -159,27 +190,29 @@ public class Divinity2Parse implements JSoupImp<DivinityItem> {
         return this;
     }
 
-    public static void main(String[] strings){
+    public static void main(String[] strings) {
+
         JSoupImp parse = new Divinity2Parse();
-        parse.callback(new OnParseCallback<DivinityItem>() {
+        parse.callback(new OnParseCallback<Armor>() {
             @Override
-            public void success(List<DivinityItem> divinityItems) {
+            public void success(List<Armor> divinityItems) {
                 divinityItems.forEach(System.out::println);
+                ArmorDao dao = new ArmorDao();
             }
-
             @Override
-            public void error() {
-                System.out.println("divinity parse error");
+            public void error(String msg) {
+                System.out.println(String.format("divinity parse error:%s",msg));
             }
-
             @Override
             public void empty() {
                 System.out.println("divinity parse empty");
             }
         });
         Map map = new HashMap();
-        map.put("searchSection","1");
+        map.put("selection", "5");
         parse.params(map);
+        //解析器
+        parse.callDocumentAnalysis(new ArmorAnalysis());
         parse.parse();
     }
 }
