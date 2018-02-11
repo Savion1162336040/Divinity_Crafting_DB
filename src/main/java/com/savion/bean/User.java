@@ -20,6 +20,14 @@ public class User {
     @Column(value = "update_time")
     private String updateTime;
 
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
     public String getName() {
         return name;
     }

@@ -1,14 +1,73 @@
-<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
-<!doctype html>
-<html lang="en">
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+         pageEncoding="UTF-8" %>
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport"
-          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Document</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>NutzBook demo</title>
+    <!-- 导入jquery -->
+    <script type="text/javascript" src="http://lib.sinaapp.com/js/jquery/2.0.3/jquery-2.0.3.min.js"></script>
+    <!-- 把user id复制到一个js变量 -->
+    <script type="text/javascript">
+        var me = '<%=session.getAttribute("session") %>';
+        var base = 'http://localhost:8080/divinity_original_sin_crafting_db/';
+        $(function () {
+            $("#login_button").click(function () {
+                var data = $("#loginForm").serialize();
+                alert(data);
+                $.ajax({
+                    url: base + "/user/login",
+                    type: "POST",
+                    data: data,
+                    error: function (request) {
+                        alert("Connection error");
+                    },
+                    dataType: "json",
+                    success: function (data) {
+                        alert(data);
+                        if (data == true) {
+                            alert("登陆成功");
+                            location.reload();
+                        } else {
+                            alert("登陆失败,请检查账号密码")
+                        }
+                    }
+                });
+                return false;
+            });
+            if (me != "null") {
+                $("#login_div").hide();
+                $("#userInfo").html("您的Id是" + me);
+                $("#user_info_div").show();
+            } else {
+                $("#login_div").show();
+                $("#user_info_div").hide();
+            }
+        });
+        $(function () {
+            $("#test").click(function () {
+                //$("#lable").text($("#loginForm").serialize());
+                htmlText = $.ajax({url: "http://www.w3school.com.cn/jquery/test1.txt", async: false});
+                alert(htmlText.responseText);
+            });
+        });
+    </script>
 </head>
 <body>
-    <h1>Welcom to Divinity Origin Sin2 Crafting Site</h1>
+<div id="login_div">
+    <form action="#" id="loginForm" method="post">
+        用户名 <input name="username" type="text" value="admin">
+        密码 <input name="password" type="password" value="123456">
+        <button id="login_button">提交</button>
+        <br>
+        <button id="test">test</button>
+    </form>
+</div>
+<br>
+<p id="lable"></p>
+<div id="user_info_div">
+    <p id="userInfo"></p>
+    <a href="${base}/user/logout">登出</a>
+</div>
 </body>
 </html>

@@ -1,4 +1,4 @@
-package com.savion.main;
+package com.savion;
 
 import com.savion.bean.User;
 import org.nutz.dao.Dao;
@@ -33,5 +33,7 @@ public class MainSetup implements Setup {
 
     @Override
     public void destroy(NutConfig nutConfig) {
+        // webapp销毁之前执行的逻辑
+        // 这个时候依然可以从nc取出ioc, 然后取出需要的ioc 对象进行操作
     }
 }
